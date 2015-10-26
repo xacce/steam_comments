@@ -39,15 +39,7 @@ class Post(object):
                 yield c
 
     def pages(self):
-        """
-        Return json array
-        comments_html: steam style html comments list
-        comments_raw: dict of comments
-            "527273452871477112": {
-                "text": "Comment text",
-                "author": "Comment author"
-            }
-        """
+
         if not self.count:
             self.count_comments()
         counter = 0
@@ -68,20 +60,20 @@ class Post(object):
             url = "http://steamcommunity.com/comment/ForumTopic/render/%s/%s/" % (id1, id2)
             f = json.loads(requests.post(url, query).content)
 
-            ordering = map(int, re.findall(r'id="comment\_(?P<id>\d+)"', f['comments_html']))
             f['comments_html'] = re.sub(r"[\n\t\r]", "", f['comments_html'])
 
             comments = []
 
             if f['comments_raw']:
-                for pk, c in f['comments_raw'].items():
-                    c['id'] = int(pk)
-
-                    comments.append(c)
-                    # Comment id cant be ordering key;D
-
-
-                comments.sort(key=lambda x: ordering.index(x['id']))
+                b = BeautifulSoup(f['comments_html'], 'html.parser')
+                for post in b.find_all('div', class_="commentthread_comment"):
+                    pid = int(re.search('comment_(?P<id>\d+)', post.attrs['id']).group('id'))
+                    user_wrapper = post.find('div', class_='commentthread_comment_avatar')
+                    profile_url = user_wrapper.find('a').attrs['href']
+                    image_url = re.search(', (.*?) 2x', user_wrapper.find('img').attrs['srcset']).group(1)
+                    text = str(post.find('div', class_='commentthread_comment_text'))
+                    author = post.find('bdi').text
+                    comments.append(dict(profile_url=profile_url, image_url=image_url, text=text, id=pid, author=author))
 
                 counter += 50
                 yield comments
