@@ -11,6 +11,7 @@ class Post(object):
 
     def __init__(self, url="https://steamcommunity.com/groups/ns2rus/discussions/0/527273452871150509/"):
         self.url = url
+        self.count = None
         self.content = requests.get(url).content
         self.soup = BeautifulSoup(self.content, 'html.parser')
         self.prepare()
@@ -39,8 +40,7 @@ class Post(object):
                 yield c
 
     def pages(self):
-
-        if not self.count:
+        if self.count is None:
             self.count_comments()
         counter = 0
         while not self.stop:
