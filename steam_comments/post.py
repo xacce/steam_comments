@@ -73,7 +73,19 @@ class Post(object):
                     image_url = re.search(', (.*?) 2x', user_wrapper.find('img').attrs['srcset']).group(1)
                     text = str(post.find('div', class_='commentthread_comment_text'))
                     author = post.find('bdi').text
-                    comments.append(dict(profile_url=profile_url, image_url=image_url, text=text, id=pid, author=author))
+
+                    text = unicode(text, 'utf-8')
+                    text_normalized = re.sub(r'<blockquote.*<\/blockquote>', '', text)
+                    text_normalized = re.sub(r'<[^>]+>', '', text_normalized)
+
+                    comments.append(dict(
+                        profile_url=profile_url,
+                        image_url=image_url,
+                        text=text,
+                        text_normalized=text_normalized,
+                        id=pid,
+                        author=author
+                    ))
 
                 counter += 50
                 yield comments
