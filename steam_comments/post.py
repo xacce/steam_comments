@@ -30,7 +30,7 @@ class Post(object):
         if not wrapper or not count:
             return 0
 
-        self.count = int(count.text)
+        self.count = int(re.sub(r'[^0-9]+', '', count.text))
         return self.count
 
     def comments(self):
